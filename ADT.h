@@ -1,5 +1,9 @@
-#ifndef ADT_H_INCLUDED
-#define ADT_H_INCLUDED
+#ifndef ADT_H
+#define ADT_H
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 struct frame{
     char SOH;
     int SeqNum;
@@ -13,9 +17,11 @@ struct ACK{
     int NextSeqNum;
     char CheckSum;
 };
+struct sendpacket{
+    time_t time;
+    struct frame packet;
+};
 
-frame initialize_frame(int SequentialNumber, int Length, char buff[][]);
-
-
-
-#endif // ADT_H_INCLUDED
+struct frame initialize_frame(int SequentialNumber, int Length, char* buff);
+char* stringToBinary(char* s);
+#endif

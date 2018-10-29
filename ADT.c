@@ -1,6 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <ADT.h>
+#include "ADT.h"
 
 char checksum_str(char* x, int length) {
 	int n = 0;
@@ -10,21 +8,32 @@ char checksum_str(char* x, int length) {
 	return (char) n;
 }
 
-frame initialize_frame(int SequentialNumber, int Length, char buff[]){
-    SOH = 0x1;
-    SeqNum = SequentialNumber;
-    DataLength = Length;
+struct frame initialize_frame(int SequentialNumber, int Length, char* buff){
+    struct frame temp;
+    temp.SOH = 0x1;
+    temp.SeqNum = SequentialNumber;
+    temp.DataLength = Length;
     int i = SequentialNumber-1;
     int j = 0;
-    char* c = buff[i][j];
-    array_frame[i].Data = malloc (sizeof (char) * 1024);
-    strcpy(array_frame[i].Data, c);
-    while ((j<=1023) && (buff[i][j] != '\0')){
-        if((i!=0)||(j!=0)){
-            char* c = buff[i][j];
-            strcat(array_frame[i].Data, c);
-        }
-        j++;
-    }
+    stringToBinary(buff);
     //char CheckSum;
+    return temp;
+}
+
+char* stringToBinary(char* s) {
+    if(s == NULL) return 0; /* no input string */
+    size_t len = strlen(s);
+    char *binary = malloc(len*8 + 1); // each char is one byte (8 bits) and + 1 at the end for null terminator
+    binary[0] = '\0';
+    for(size_t i = 0; i < len; ++i) {
+        char ch = s[i];
+        for(int j = 7; j >= 0; --j){
+            if(ch & (1 << j)) {
+                strcat(binary,"1");
+            } else {
+                strcat(binary,"0");
+            }
+        }
+    }
+    return binary;
 }
