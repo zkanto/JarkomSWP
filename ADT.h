@@ -23,5 +23,17 @@ struct sendpacket{
 };
 
 struct frame initialize_frame(int SequentialNumber, int Length, char* buff);
+
 char* stringToBinary(char* s);
+
+struct ACK initialize_ack(char ack, int NextSequentialNumber);
+
+void printcharbin(char a);
+
+void printbinary(struct ACK a);
+
+unsigned char checksum(char* x, int length);
+
+int checksumvalid(struct ACK a);
+
 #endif
