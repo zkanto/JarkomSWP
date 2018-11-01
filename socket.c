@@ -3,7 +3,6 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <stdlib.h>
-#include "segment.h"
 #include "util.h"
 
 #define SEGMENTSIZE 9
