@@ -7,12 +7,12 @@
 #include "util.h"
 
 #define SEGMENTSIZE 9
-
+/*
 typedef struct {
   segment* segments;
   int length;
 } BufferArray;
-
+*/
 void initsocket(int* udpSocket, int port){
     /*Create UDP socket*/
     *udpSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -42,12 +42,6 @@ void initsocket(int* udpSocket, int port){
     fflush(stdout);
 }
 
-void initBufferArray(BufferArray* a, int max_segment) {
-    // free(a->segments);
-    a->segments = (segment*) malloc(max_segment * sizeof(segment));
-    a->length = 0;
-}
-
 void writeToFile(char* filename, char* message, int n) {
     for(int i=0; i<n; i++){
         printf("WRITE : %c\n", message[i]);
@@ -55,38 +49,5 @@ void writeToFile(char* filename, char* message, int n) {
     FILE *fp;
     fp=fopen(filename, "a+");
     fwrite(message, sizeof(message[0]), n, fp);
-    fclose(fp);
-}
-
-void drainBufferArray(BufferArray* a, char* filename, int max_segment) {
-    char temp[a->length];
-    for (int i = 0; i < a->length; i++) {
-        segment aSegment = *(a->segments + i * SEGMENTSIZE);
-        // printf(" %c",(char) aSegment.data);
-        temp[i] = (char) aSegment.data;
-    }
-    // printf("\n");
-    writeToFile(filename, temp, a->length);
-    free(a->segments);
-    initBufferArray(a,max_segment);
-}
-
-void insertBufferArray(BufferArray *a, segment aSegment, int buffersize) {
-    int curr = a->length * SEGMENTSIZE;
-    int last_mem = curr + SEGMENTSIZE;
-    // int remainingMemoryAfterInsertion = buffersize - memoryNeeded;
-
-    // printf("CURR %d MEMNEED %d REMAINING %d\n", curr, memoryNeeded, remainingMemoryAfterInsertion);
-
-    if (last_mem >= buffersize){
-    } else {
-        *(a->segments + curr) = aSegment;
-        a->length = a->length + 1;
-    }
-}
-
-void initFile(char* filename){
-    FILE *fp;
-    fp=fopen(filename, "w");
     fclose(fp);
 }
