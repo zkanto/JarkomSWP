@@ -47,7 +47,7 @@ int main (int argc, char* argv[]) {
     struct sockaddr_in si_me, si_other;
      
     int s, i, slen = sizeof(si_other) , recv_len;
-    char buf[BUFLEN];
+    char buf[1034];
      
     //create a UDP socket
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -75,12 +75,16 @@ int main (int argc, char* argv[]) {
         fflush(stdout);
          
         //try to receive some data, this is a blocking call
-        if ((recv_len = recvfrom(s, buf, BUFLEN, 0, (struct sockaddr *) &si_other, &slen)) == -1)
+        if ((recv_len = recvfrom(s, buf, 1034, 0, (struct sockaddr *) &si_other, &slen)) == -1)
         {
             die("recvfrom()");
         }
         printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-        printf("Data: %s\n" , buf);
+        printf("Data: %s\n" , buf+9);
+
+        for (i = 0; i < BUFLEN; i++) {
+            buf[i] = '0';
+        }
          
     }
     
