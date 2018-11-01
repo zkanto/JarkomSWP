@@ -17,14 +17,15 @@ int readfile(char* file, char buff[][1024], int* length_frame){
         if(j==1023){
             j=0;
             i++;
-            length_frame[i] = 1024;
             //printf("Frame %i: %s\n WITH LENGTH: %i\n",i,buff[i-1],length_frame[i]);
         }
         else{
             j++;
         }
-        if(buff[i][j]==feof(fileinput)){
-            length_frame[i] = j;
+        if(feof(fileinput)){
+            length_frame[i] = j - 1;
+        } else {
+            length_frame[i] = 1024;
         }
     } while(buff[i][j]==feof(fileinput));
     //printf("Frame %i: %s\n WITH LENGTH: %i\n",i+1,buff[i],length_frame[i]);
