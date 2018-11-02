@@ -1,5 +1,5 @@
 # Tugas Jaringan Komputer IF3130
-## Kelompok XX K01
+## Kelompok 02 K01
 Anggota Kelompok  
 -Kevin Andrian Liwinata - 13516118<br>
 -Muhammad Azka Widyanto - 13516127<br>
@@ -28,6 +28,13 @@ Anggota Kelompok
     - <port> : port yang digunakan pada receiver
 
 ### BAGIAN II - CARA KERJA SLIDING WINDOW
+Program dibagi menjadi server.c dan client.c dengan memanfaatkan ADT yang diatur pada data.h. Fungsi yang digunakan adalah checkInt yang bertugas untuk memastikan apakah masukannya text atau bukan, generateCheckSum untuk membuat CheckSum, checkDataIntegrity untuk mengecek apakah CheckSumnya sama atau tidak serta clearCharBuffer untuk menngosongkan buffer.
+
+### BAGIAN II - PEMBAGIAN TUGAS
+1. Kevin Andrian Liwinata - server(receiver)
+2. Teresa - client(sender)
+3. Azka - socket + data.h
+
 
 
 
