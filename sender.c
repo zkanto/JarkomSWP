@@ -51,12 +51,21 @@ int main (int argc, char* argv[]) {
     memset((char *) &si_other, 0, sizeof(si_other));
     si_other.sin_family = AF_INET;
     si_other.sin_port = htons(port);
-     
-    if (inet_aton(destinationIp , &si_other.sin_addr) == 0) 
+    si_other.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    if( bind(s , (struct sockaddr*)&si_other, sizeof(si_other) ) == -1)
     {
-        fprintf(stderr, "inet_aton() failed\n");
-        exit(1);
+        die("bind");
     }
+
+    char *RWS = (char*) malloc(sizeof(int));
+    recvfrom(s, RWS, 4, 0, (struct sockaddr *) &si_other, &slen);
+    free(RWS);
+
+    close(s);
+
+    printf("Over\n");
+
 
     //printf("Enter buff : ");
     //gets(buff);
@@ -73,23 +82,39 @@ int main (int argc, char* argv[]) {
         }
     }
 
-
-
-    FILE *fileinput = fopen("input.txt", "r");
+    FILE *fileinput = fopen(filename, "r");
     i = 0; j = 0;
     
     while (!feof(fileinput)){
         do {
             buff[j][i] = fgetc(fileinput);
             i++;
-        } while (i < DATALEN);
+        } while ((i < DATALEN)&&(!feof(fileinput)));
         length_frame[j] = i;
         i = 0;
         j++;
     }
 
     fclose(fileinput);
-         
+
+    
+
+    if ( (s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+    {
+        die("socket");
+    }
+    memset((char *) &si_other, 0, sizeof(si_other));
+    si_other.sin_family = AF_INET;
+    si_other.sin_port = htons(port);
+     
+    if (inet_aton(destinationIp , &si_other.sin_addr) == 0) 
+    {
+        fprintf(stderr, "inet_aton() failed\n");
+        exit(1);
+    }
+
+
+    
     struct frame *packet[j];
 
     for (i = 0; i < j; i++) {
@@ -105,26 +130,27 @@ int main (int argc, char* argv[]) {
     }
 
 
-    char sendpacket[1034];
-    sendpacket[0] = packet[0]->SOH;
-    memcpy(sendpacket+1, &(packet[0]->SeqNum), 4);
-    memcpy(sendpacket+5, &(packet[0]->DataLength), 4);
-    memcpy(sendpacket+9, packet[0]->Data, 1024);
-    memcpy(sendpacket+1033, &(packet[0]->CheckSum), 1);
-
+    char sendpacket[j][1034];
+    for (i = 0; i < j; i++) {
+        sendpacket[i][0] = packet[i]->SOH;
+        memcpy(sendpacket[i]+1, &(packet[i]->SeqNum), 4);
+        memcpy(sendpacket[i]+5, &(packet[i]->DataLength), 4);
+        memcpy(sendpacket[i]+9, packet[i]->Data, 1024);
+        memcpy(sendpacket[i]+1033, &(packet[i]->CheckSum), 1);
+    }
     printf("%s\n", sendpacket+9);
     
-    //int k = 0;
-    //while (k < j) {
-        if (sendto(s, sendpacket, 1034 , 0 , (struct sockaddr *) &si_other, slen)==-1)
+    int k = 0;
+    while (k < j) {
+        if (sendto(s, sendpacket[k], 1034 , 0 , (struct sockaddr *) &si_other, slen)==-1)
         {
             die("sendto()");
         }
-        //k++;
-    //}
+        k++;
+    }
     
     //printf("%s", packet[0]->Data);
-
+    
     close(s);
     return 0;
 
@@ -166,6 +192,6 @@ int main (int argc, char* argv[]) {
         printf("%s", buff[i]);
         i++;
     } while (i <= length);
-
+    */
     return 0;
 }

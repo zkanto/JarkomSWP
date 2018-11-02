@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-#define BUFLEN 1024
+#define DATALEN 1024
 struct clientSWP {
     int LFS;
     int RWS;
@@ -36,18 +36,18 @@ int main (int argc, char* argv[]) {
     int port = atoi(argv[4]);
     
     /*
+        Initialize SWP variable
+    */
     struct clientSWP client;
     client.RWS = windowsize;
     client.LFS = 0;
     client.LAF = client.RWS + client.LFS;
     client.BufferSize = buffersize;
-    */
-    //printf("WORKS!");
 
     struct sockaddr_in si_me, si_other;
      
     int s, i, slen = sizeof(si_other) , recv_len;
-    char buf[1034];
+    char buff[1034];
      
     //create a UDP socket
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -55,38 +55,99 @@ int main (int argc, char* argv[]) {
         die("socket");
     }
      
-    // zero out the structure
+    /*
+        zero out the structure
+    */
     memset((char *) &si_me, 0, sizeof(si_me));
      
     si_me.sin_family = AF_INET;
     si_me.sin_port = htons(port);
     si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+    
+    /*
+        Send window size to sender
+    */
+    
+    char *winsize = (char*) malloc(sizeof(int));
+    memcpy(winsize, &windowsize, 4);
+
+    sendto(s, winsize, 1024, 0 , (struct sockaddr *) &si_me, slen); 
+    
+    free(winsize);
+
+    close(s);
+
+
+    //create a UDP socket
+    if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+    {
+        die("socket");
+    }
      
-    //bind socket to port
+    /*
+        zero out the structure
+    */
+    memset((char *) &si_me, 0, sizeof(si_me));
+     
+    si_me.sin_family = AF_INET;
+    si_me.sin_port = htons(port);
+    si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    /*
+        bind socket to port
+    */
+    
     if( bind(s , (struct sockaddr*)&si_me, sizeof(si_me) ) == -1)
     {
         die("bind");
     }
-     
-    //keep listening for data
+
+
+    
+
+    //Empty output text
+    FILE *fileoutput = fopen(filename, "w");
+    fclose(fileoutput);
+
+    /*
+        keep listening for data
+    */
     while(1)
     {
         printf("Waiting for data...");
         fflush(stdout);
          
         //try to receive some data, this is a blocking call
-        if ((recv_len = recvfrom(s, buf, 1034, 0, (struct sockaddr *) &si_other, &slen)) == -1)
+        if ((recv_len = recvfrom(s, buff, 1034, 0, (struct sockaddr *) &si_other, &slen)) == -1)
         {
             die("recvfrom()");
         }
-        printf("Received packet from %s:%d\n", inet_ntoa(si_other.sin_addr), ntohs(si_other.sin_port));
-        printf("Data: %s\n" , buf+9);
+        struct frame packet;
+        packet.SOH = buff[0];
+        memcpy(&(packet.SeqNum), buff + 1, 4);
+        memcpy(&(packet.DataLength), buff + 5, 4);
+        packet.Data = (char*) malloc(packet.DataLength*sizeof(char));
+        memcpy(packet.Data, buff + 9, DATALEN);
+        memcpy(&(packet.CheckSum), buff + 1034, 1);
 
-        for (i = 0; i < BUFLEN; i++) {
-            buf[i] = '0';
+        FILE *fileoutput = fopen(filename, "a+");
+    
+        if (packet.DataLength < DATALEN) {
+            fwrite(packet.Data, packet.DataLength-1, 1, fileoutput);
+        } else {
+            fwrite(packet.Data, packet.DataLength, 1, fileoutput);
+        }
+        fclose(fileoutput);
+
+        free(packet.Data);
+        
+        for (i = 0; i < DATALEN; i++) {
+            buff[i] = '0';
         }
          
     }
+
+    close(s);
     
     //print details of the client/peer and the data received
     /*
